@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Port Scanner</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <div class="container">
+    <h1>🔍 Port Scanner</h1>
+    <p class="subtitle">Enter an IP address, hostname, or URL to scan.</p>
+
+    <div class="input-row">
+      <input type="text" id="targetInput" placeholder="e.g. 192.168.1.1 or scanme.nmap.org" autocomplete="off">
+    </div>
+
+    <div class="options-row">
+      <input type="text" id="portInput" placeholder="Ports (e.g. 1-1024)" value="1-1024">
+      <label class="checkbox-label">
+        <input type="checkbox" id="bannerCheck">
+        Grab banners
+      </label>
+    </div>
+
+    <div class="button-row">
+      <button id="scanBtn" onclick="startScan()">Scan</button>
+      <button id="clearBtn" class="secondary" onclick="clearResults()">Clear</button>
+    </div>
+
+    <div id="statusMsg"></div>
+
+    <div id="resultsArea"></div>
+  </div>
+
+  <footer>
+    ⚠️ Only scan hosts you own or have permission to test.
+  </footer>
+
+<script>
+async function startScan() {
+    const target = document.getElementById('targetInput').value.trim();
+    const ports = document.getElementById('portInput').value.trim() || "1-1024";
+    const banner = document.getElementById('bannerCheck').checked;
+    const statusMsg = document.getElementById('statusMsg');
+    const resultsArea = document.getElementById('resultsArea');
+    const scanBtn = document.getElementById('scanBtn');
+
+    if (!target) {
+        statusMsg.innerHTML = '<p class="error">Please enter a target first.</p>';
+        return;
+    }
+
+    scanBtn.disabled = true;
+    scanBtn.textContent = "Scanning...";
+    statusMsg.innerHTML = '<p class="loading">Scanning ' + target + ' — this may take a few seconds...</p>';
+    resultsArea.innerHTML = "";
+
+    try {
+        const res = await fetch('/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: target, ports: ports, banner: banner })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            statusMsg.innerHTML = '<p class="error">' + data.error + '</p>';
+            return;
+        }
+
+        statusMsg.innerHTML =
+            '<p class="success">Scanned ' + data.target_input + ' (' + data.target_ip + ') — ' +
+            data.ports_scanned + ' ports in ' + data.elapsed_seconds + 's</p>';
+
+        if (data.open_ports.length === 0) {
+            resultsArea.innerHTML = '<p class="empty">No open ports found.</p>';
+        } else {
+            let html = '<table><tr><th>Port</th><th>Service</th><th>Banner</th></tr>';
+            data.open_ports.forEach(p => {
+                html += '<tr><td>' + p.port + '</td><td>' + p.service + '</td><td>' +
+                        (p.banner ? escapeHtml(p.banner) : '-') + '</td></tr>';
+            });
+            html += '</table>';
+            resultsArea.innerHTML = html;
+        }
+    } catch (err) {
+        statusMsg.innerHTML = '<p class="error">Something went wrong: ' + err + '</p>';
+    } finally {
+        scanBtn.disabled = false;
+        scanBtn.textContent = "Scan";
+    }
+}
+
+function clearResults() {
+    document.getElementById('targetInput').value = "";
+    document.getElementById('portInput').value = "1-1024";
+    document.getElementById('bannerCheck').checked = false;
+    document.getElementById('statusMsg').innerHTML = "";
+    document.getElementById('resultsArea').innerHTML = "";
+    document.getElementById('targetInput').focus();
+}
+
+document.getElementById('targetInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') startScan();
+});
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
