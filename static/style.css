@@ -147,3 +147,57 @@ footer {
   font-size: 12px;
   text-align: center;
 }
+
+.risk-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.risk-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.risk-badge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.risk-reason {
+  color: #9099a8;
+  font-size: 12.5px;
+  max-width: 220px;
+}
+
+.risk-critical, .risk-chip.risk-critical {
+  background: #4a1620;
+  color: #ff6b6b;
+}
+
+.risk-high, .risk-chip.risk-high {
+  background: #4a2e14;
+  color: #ff9f4a;
+}
+
+.risk-medium, .risk-chip.risk-medium {
+  background: #4a4014;
+  color: #f5c542;
+}
+
+.risk-low, .risk-chip.risk-low {
+  background: #16402a;
+  color: #4fd18b;
+}
+
+.risk-info, .risk-chip.risk-info {
+  background: #1a2540;
+  color: #6ba3ff;
+}

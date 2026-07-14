@@ -77,10 +77,21 @@ async function startScan() {
         if (data.open_ports.length === 0) {
             resultsArea.innerHTML = '<p class="empty">No open ports found.</p>';
         } else {
-            let html = '<table><tr><th>Port</th><th>Service</th><th>Banner</th></tr>';
+            const rs = data.risk_summary;
+            let summaryHtml = '<div class="risk-summary">';
+            if (rs.critical > 0) summaryHtml += '<span class="risk-chip risk-critical">Critical: ' + rs.critical + '</span>';
+            if (rs.high > 0) summaryHtml += '<span class="risk-chip risk-high">High: ' + rs.high + '</span>';
+            if (rs.medium > 0) summaryHtml += '<span class="risk-chip risk-medium">Medium: ' + rs.medium + '</span>';
+            if (rs.low > 0) summaryHtml += '<span class="risk-chip risk-low">Low: ' + rs.low + '</span>';
+            if (rs.info > 0) summaryHtml += '<span class="risk-chip risk-info">Info: ' + rs.info + '</span>';
+            summaryHtml += '</div>';
+
+            let html = summaryHtml + '<table><tr><th>Port</th><th>Service</th><th>Risk</th><th>Why</th><th>Banner</th></tr>';
             data.open_ports.forEach(p => {
-                html += '<tr><td>' + p.port + '</td><td>' + p.service + '</td><td>' +
-                        (p.banner ? escapeHtml(p.banner) : '-') + '</td></tr>';
+                html += '<tr><td>' + p.port + '</td><td>' + p.service + '</td>' +
+                        '<td><span class="risk-badge risk-' + p.risk_level + '">' + p.risk_level.toUpperCase() + '</span></td>' +
+                        '<td class="risk-reason">' + escapeHtml(p.risk_reason) + '</td>' +
+                        '<td>' + (p.banner ? escapeHtml(p.banner) : '-') + '</td></tr>';
             });
             html += '</table>';
             resultsArea.innerHTML = html;
